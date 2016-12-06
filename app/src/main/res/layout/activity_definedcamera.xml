@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout android:id="@+id/FrameLayout1"
+             xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent">
+    <!-- 显示预览图形 -->
+    <SurfaceView
+        android:id="@+id/surfaceView"
+        android:layout_width="768px"
+        android:layout_height="1280px"
+        />
+    <!-- 相对布局，放置两个按钮 -->
+    <RelativeLayout
+        android:id="@+id/buttonLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <!-- 拍照按钮 -->
+        <Button
+            android:id="@+id/takepicture"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:onClick="btnOnclick"
+            android:text="拍照"
+            />
+        <ImageView
+            android:id="@+id/scalePic"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="5dp"
+            android:onClick="imageClick"
+            android:visibility="gone"
+            />
+    </RelativeLayout>
+</FrameLayout>

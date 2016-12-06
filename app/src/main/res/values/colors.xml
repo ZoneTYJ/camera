@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+
+
+    <!--二维码支付和扫描-->
+    <color name="vf_sdk_activity_bg">#eef1f3</color>
+    <color name="vf_sdk_title_bg_color">#ffDD3818</color>
+    <color name="vf_sdk_black">#ff000000</color>
+    <color name="vf_sdk_gray">#b4b4b4</color>
+    <color name="vf_sdk_text_blue_light_color">#3769a9</color>
+    <color name="vf_sdk_tab_bg">#ffeef1f3</color>
+    <color name="vf_sdk_white">#ffffff</color>
+    <color name="vf_sdk_line_color">#d6d6d6</color>
+    <color name="vf_sdk_text_hint_color">#cdcdcd</color>
+    <color name="vf_sdk_text_normal_color">#333333</color>
+    <color name="vf_sdk_btn_press">#ffBF1E11</color>
+
+
+    <color name="blue_bg">#4285F4</color>
+    <color name="line_bg">#DDDDDD</color>
+    <color name="text_lightgray_color">#CCCCCC</color>
+    <color name="text_black_color">#555555</color>
+    <color name="text_color_black">#666666</color>
+    <color name="text_color_green">#BB9C</color>
+</resources>

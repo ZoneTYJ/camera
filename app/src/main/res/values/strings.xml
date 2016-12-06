@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">camera</string>
+
+    <!--二维码扫描和支付-->
+    <string name="menu_settings">Settings</string>
+    <string name="scan_text">将二维码/条码放入框内, 即可自动扫描</string>
+    <string name="payment_qrcode_title">付款</string>
+    <string name="gathering_title">收款</string>
+    <string name="gathering_top">扫一扫,向我付款</string>
+    <string name="gathering_qrcode_des">唯一二维码</string>
+    <string name="gathering_set_amount">设置金额</string>
+    <string name="gathering_wait">等待付款</string>
+    <string name="gathering_clean_amount">清除金额</string>
+
+</resources>
