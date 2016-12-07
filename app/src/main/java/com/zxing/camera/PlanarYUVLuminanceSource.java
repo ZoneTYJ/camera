@@ -23,6 +23,7 @@ import android.graphics.ImageFormat;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
+import android.util.Log;
 
 import com.google.zxing.LuminanceSource;
 
@@ -126,6 +127,7 @@ public final class PlanarYUVLuminanceSource extends LuminanceSource {
         int[] pixels = new int[width * height];
         byte[] yuv = yuvData;
         int inputOffset = top * dataWidth + left;
+        Log.e("top size", top+"left"+left);
 
         for (int y = 0; y < height; y++) {
             int outputOffset = y * width;

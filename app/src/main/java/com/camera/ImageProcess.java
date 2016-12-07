@@ -167,11 +167,10 @@ public class ImageProcess {
 
     }
 
-    public Bitmap doErode(Bitmap bitmap){
-        Mat mat=doErode(getMat(bitmap));
-         mat=doErode(getMat(bitmap));
-         mat=doErode(getMat(bitmap));
-         mat=doErode(getMat(bitmap));
+    public Bitmap doLinearTransform(Bitmap bitmap){
+        Mat mat=getMat(bitmap);
+//        Mat mat= doErode(getMat(bitmap));
+        mat=doLinearTransform(mat,0,250);
         return getMat2Bitmap(mat);
     }
 
@@ -235,6 +234,31 @@ public class ImageProcess {
 //            }
 //        }
 //        blueImgae=doCanny(mat);
+        return mat;
+    }
+
+
+    private Mat doLinearTransform(Mat mat,int brightness,int contrast){
+        double B = brightness / 255.;
+        double C = contrast / 255. ;
+        double M = Math.tan((45 + 44 * C) / 180 * Math.PI);
+        byte[] data=new byte[4];
+        for(int i=0;i<mat.height();i++){
+            for(int j=0;j<mat.width();j++){
+                mat.get(i,j,data);
+                for(int m=0;m<3;m++){
+                   int temp= (int) (((data[m]&0xff) - 150 * (1 - B)) * M);
+                    if(temp>255){
+                        temp=255;
+                    }
+                    if(temp<0){
+                        temp=0;
+                    }
+                    data[m]= (byte) temp;
+                }
+                mat.put(i,j,data);
+            }
+        }
         return mat;
     }
 

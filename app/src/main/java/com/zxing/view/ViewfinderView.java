@@ -79,7 +79,7 @@ public final class ViewfinderView extends View {
 	/**
 	 * �����С
 	 */
-	private static final int TEXT_SIZE = 16;
+	private static final int TEXT_SIZE = 12;
 	/**
 	 * �������ɨ�������ľ���
 	 */
@@ -133,6 +133,9 @@ public final class ViewfinderView extends View {
 	public void onDraw(Canvas canvas) {
 		//�м��ɨ�����Ҫ�޸�ɨ���Ĵ�С��ȥCameraManager�����޸�
 		Rect frame = CameraManager.get().getFramingRect();
+		int dy=50;
+		int top=frame.top-dy;
+		int bottom=frame.bottom-dy;
 		if (frame == null) {
 			return;
 		}
@@ -140,8 +143,8 @@ public final class ViewfinderView extends View {
 		//��ʼ���м��߻��������ϱߺ����±�
 		if(!isFirst){
 			isFirst = true;
-			slideTop = frame.top;
-			slideBottom = frame.bottom;
+			slideTop = top;
+			slideBottom = bottom;
 		}
 		
 		//��ȡ��Ļ�Ŀ�͸�
@@ -152,44 +155,42 @@ public final class ViewfinderView extends View {
 		
 		//����ɨ����������Ӱ���֣����ĸ����֣�ɨ�������浽��Ļ���棬ɨ�������浽��Ļ����
 		//ɨ��������浽��Ļ��ߣ�ɨ�����ұߵ���Ļ�ұ�
-		canvas.drawRect(0, 0, width, frame.top, paint);
-		canvas.drawRect(0, frame.top, frame.left, frame.bottom + 1, paint);
-		canvas.drawRect(frame.right + 1, frame.top, width, frame.bottom + 1,
+		canvas.drawRect(0, 0, width, top, paint);
+		canvas.drawRect(0, top, frame.left, bottom + 1, paint);
+		canvas.drawRect(frame.right + 1, top, width, bottom + 1,
 				paint);
-		canvas.drawRect(0, frame.bottom + 1, width, height, paint);
-		
-		
+		canvas.drawRect(0, bottom + 1, width, height, paint);
 
 		if (resultBitmap != null) {
 			// Draw the opaque result bitmap over the scanning rectangle
 			paint.setAlpha(OPAQUE);
-			canvas.drawBitmap(resultBitmap, frame.left, frame.top, paint);
+			canvas.drawBitmap(resultBitmap, frame.left, top, paint);
 		} else {
 
 			//��ɨ�����ϵĽǣ��ܹ�8������
 			paint.setColor(Color.GREEN);
-			canvas.drawRect(frame.left, frame.top, frame.left + ScreenRate,
-					frame.top + CORNER_WIDTH, paint);
-			canvas.drawRect(frame.left, frame.top, frame.left + CORNER_WIDTH, frame.top
-					+ ScreenRate, paint);
-			canvas.drawRect(frame.right - ScreenRate, frame.top, frame.right,
-					frame.top + CORNER_WIDTH, paint);
-			canvas.drawRect(frame.right - CORNER_WIDTH, frame.top, frame.right, frame.top
-					+ ScreenRate, paint);
-			canvas.drawRect(frame.left, frame.bottom - CORNER_WIDTH, frame.left
-					+ ScreenRate, frame.bottom, paint);
-			canvas.drawRect(frame.left, frame.bottom - ScreenRate,
-					frame.left + CORNER_WIDTH, frame.bottom, paint);
-			canvas.drawRect(frame.right - ScreenRate, frame.bottom - CORNER_WIDTH,
-					frame.right, frame.bottom, paint);
-			canvas.drawRect(frame.right - CORNER_WIDTH, frame.bottom - ScreenRate,
-					frame.right, frame.bottom, paint);
+			canvas.drawRect(frame.left, top, frame.left + ScreenRate,
+					top + CORNER_WIDTH, paint);
+			canvas.drawRect(frame.left, top, frame.left + CORNER_WIDTH,
+					top + ScreenRate, paint);
+			canvas.drawRect(frame.right - ScreenRate, top, frame.right,
+					top + CORNER_WIDTH, paint);
+			canvas.drawRect(frame.right - CORNER_WIDTH, top, frame.right,
+					top + ScreenRate, paint);
+			canvas.drawRect(frame.left, bottom - CORNER_WIDTH, frame.left
+					+ ScreenRate, bottom, paint);
+			canvas.drawRect(frame.left, bottom - ScreenRate,
+					frame.left + CORNER_WIDTH, bottom, paint);
+			canvas.drawRect(frame.right - ScreenRate, bottom - CORNER_WIDTH,
+					frame.right, bottom, paint);
+			canvas.drawRect(frame.right - CORNER_WIDTH, bottom - ScreenRate,
+					frame.right, bottom, paint);
 
 			
 			//�����м����,ÿ��ˢ�½��棬�м���������ƶ�SPEEN_DISTANCE
 			slideTop += SPEEN_DISTANCE;
-			if(slideTop >= frame.bottom){
-				slideTop = frame.top;
+			if(slideTop >= bottom){
+				slideTop = top;
 			}
 			canvas.drawRect(frame.left + MIDDLE_LINE_PADDING, slideTop - MIDDLE_LINE_WIDTH/2, frame.right - MIDDLE_LINE_PADDING,slideTop + MIDDLE_LINE_WIDTH/2, paint);
 			
@@ -199,7 +200,7 @@ public final class ViewfinderView extends View {
 			paint.setTextSize(TEXT_SIZE * density);
 			paint.setAlpha(0x40);
 			paint.setTypeface(Typeface.create("System", Typeface.BOLD));
-			canvas.drawText(getResources().getString(R.string.scan_text), frame.left, (float) (frame.bottom + (float)TEXT_PADDING_TOP *density), paint);
+			canvas.drawText(getResources().getString(R.string.scan_text), frame.left, (float) (bottom + (float)TEXT_PADDING_TOP *density), paint);
 			
 			
 
@@ -213,7 +214,7 @@ public final class ViewfinderView extends View {
 				paint.setAlpha(OPAQUE);
 				paint.setColor(resultPointColor);
 				for (ResultPoint point : currentPossible) {
-					canvas.drawCircle(frame.left + point.getX(), frame.top
+					canvas.drawCircle(frame.left + point.getX(), top
 							+ point.getY(), 6.0f, paint);
 				}
 			}
@@ -221,15 +222,15 @@ public final class ViewfinderView extends View {
 				paint.setAlpha(OPAQUE / 2);
 				paint.setColor(resultPointColor);
 				for (ResultPoint point : currentLast) {
-					canvas.drawCircle(frame.left + point.getX(), frame.top
+					canvas.drawCircle(frame.left + point.getX(), top
 							+ point.getY(), 3.0f, paint);
 				}
 			}
 
 			
 			//ֻˢ��ɨ�������ݣ�����ط���ˢ��
-			postInvalidateDelayed(ANIMATION_DELAY, frame.left, frame.top,
-					frame.right, frame.bottom);
+			postInvalidateDelayed(ANIMATION_DELAY, frame.left, top,
+					frame.right, bottom);
 			
 		}
 	}

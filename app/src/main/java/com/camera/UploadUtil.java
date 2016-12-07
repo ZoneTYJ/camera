@@ -263,13 +263,21 @@ public class UploadUtil {
         return true;
     }
 
-    private static String getPhotopath() {
+    private static String getPhotopath(String name) {
         // 照片全路径
         String fileName = "";
         // 文件夹路径
         String pathUrl = Environment.getExternalStorageDirectory() + "/finger/";
-        String imageName = "binPhoto" + ".jpg";
+        String imageName = "binPhoto";
+        if(name!=null){
+            imageName=imageName+name;
+        }
+        imageName=imageName+".jpg";
         return pathUrl + imageName;
+    }
+
+    private static String getPhotopath(){
+        return getPhotopath(null);
     }
 
     private static void saveMyBitmap4path(String filepath, Bitmap mBitmap) throws Exception {
@@ -284,6 +292,15 @@ public class UploadUtil {
     public static boolean saveBitmap2Card(Bitmap bitmap) {
         try {
             saveMyBitmap4path(getPhotopath(), bitmap);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+    public static boolean saveBitmap2Card(Bitmap bitmap,int count) {
+        try {
+            saveMyBitmap4path(getPhotopath(count+""), bitmap);
         } catch (Exception e) {
             e.printStackTrace();
             return false;

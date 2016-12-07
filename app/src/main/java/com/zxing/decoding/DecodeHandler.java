@@ -30,6 +30,7 @@ import com.google.zxing.BinaryBitmap;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.MultiFormatReader;
 import com.google.zxing.RGBLuminanceSource;
+import com.google.zxing.ReaderException;
 import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
 import com.zxing.activity.MipcaActivityCapture;
@@ -40,100 +41,109 @@ import java.util.Hashtable;
 
 final class DecodeHandler extends Handler {
 
-  private static final String TAG = DecodeHandler.class.getSimpleName();
+    private static final String TAG = DecodeHandler.class.getSimpleName();
 
-  private final MipcaActivityCapture activity;
-  private final MultiFormatReader multiFormatReader;
+    private final MipcaActivityCapture activity;
+    private final MultiFormatReader multiFormatReader;
+    private boolean decodeOpenCv = true;
+    private int countPic=0;
 
-  DecodeHandler(MipcaActivityCapture activity, Hashtable<DecodeHintType, Object> hints) {
-    multiFormatReader = new MultiFormatReader();
-    //todo 修改代码
-    hints=new Hashtable<>();
+    DecodeHandler(MipcaActivityCapture activity, Hashtable<DecodeHintType, Object> hints) {
+        multiFormatReader = new MultiFormatReader();
+        //todo 修改代码
+        hints = new Hashtable<>();
         hints.put(DecodeHintType.CHARACTER_SET, "utf-8");
         hints.put(DecodeHintType.TRY_HARDER, Boolean.TRUE);
-//        hints.put(DecodeHintType.POSSIBLE_FORMATS, BarcodeFormat.QR_CODE);
-    multiFormatReader.setHints(hints);
-    this.activity = activity;
-  }
-
-  @Override
-  public void handleMessage(Message message) {
-    switch (message.what) {
-      case R.id.decode:
-        //Log.d(TAG, "Got decode message");
-        decode((byte[]) message.obj, message.arg1, message.arg2,false);
-        break;
-      case R.id.quit:
-        Looper.myLooper().quit();
-        break;
-      case R.id.save_decode:
-        decode((byte[]) message.obj, message.arg1, message.arg2, true);
-        break;
+        //        hints.put(DecodeHintType.POSSIBLE_FORMATS, BarcodeFormat.QR_CODE);
+        multiFormatReader.setHints(hints);
+        this.activity = activity;
     }
-  }
 
-  /**
-   * Decode the data within the viewfinder rectangle, and time how long it took. For efficiency,
-   * reuse the same reader objects from one decode to the next.
-   *
-   * @param data   The YUV preview frame.
-   * @param width  The width of the preview frame.
-   * @param height The height of the preview frame.
-   */
-  private void decode(byte[] data, int width, int height,boolean saveFlag) {
-    long start = System.currentTimeMillis();
-    Result rawResult = null;
-    
-    //modify here
-    byte[] rotatedData = new byte[data.length];
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++)
-            rotatedData[x * height + height - y - 1] = data[x + y * width];
-    }
-    int tmp = width; // Here we are swapping, that's the difference to #11
-    width = height;
-    height = tmp;
-    try {
-      PlanarYUVLuminanceSource sourceYUV = CameraManager.get().buildLuminanceSource(rotatedData, width, height);
-      Bitmap bitmap=sourceYUV.renderCroppedGreyscaleBitmap();
-      if(bitmap!=null) {
-                ImageProcess imageProcess = new ImageProcess(bitmap);
-                bitmap = imageProcess.doErode(bitmap);
-        if (saveFlag) {
-          UploadUtil.saveBitmap2Card(bitmap);
+    @Override
+    public void handleMessage(Message message) {
+        switch (message.what) {
+            case R.id.decode:
+                //Log.d(TAG, "Got decode message");
+                decode((byte[]) message.obj, message.arg1, message.arg2, false);
+                break;
+            case R.id.quit:
+                Looper.myLooper().quit();
+                break;
+            case R.id.save_decode:
+                decode((byte[]) message.obj, message.arg1, message.arg2, true);
+                break;
         }
-        RGBLuminanceSource source = BitmapConverRGBLum(bitmap);
-        BinaryBitmap bitmap1 = new BinaryBitmap(new HybridBinarizer(source));
-        rawResult = multiFormatReader.decodeWithState(bitmap1);
-      }
-
-    } catch (Exception e) {
-      e.printStackTrace();
-    } finally {
-      multiFormatReader.reset();
     }
 
-    if (rawResult != null) {
-      long end = System.currentTimeMillis();
-      Log.d(TAG, "Found barcode (" + (end - start) + " ms):\n" + rawResult.toString());
-      Message message = Message.obtain(activity.getHandler(), R.id.decode_succeeded, rawResult);
-      Bundle bundle = new Bundle();
-//      bundle.putParcelable(DecodeThread.BARCODE_BITMAP, source.renderCroppedGreyscaleBitmap());
-      message.setData(bundle);
-      //Log.d(TAG, "Sending decode succeeded message...");
-      message.sendToTarget();
-    } else {
-      Message message = Message.obtain(activity.getHandler(), R.id.decode_failed);
-      message.sendToTarget();
-    }
-  }
+    /**
+     * Decode the data within the viewfinder rectangle, and time how long it took. For efficiency,
+     * reuse the same reader objects from one decode to the next.
+     *
+     * @param data   The YUV preview frame.
+     * @param width  The width of the preview frame.
+     * @param height The height of the preview frame.
+     */
+    private void decode(byte[] data, int width, int height, boolean saveFlag) {
+        long start = System.currentTimeMillis();
+        Result rawResult = null;
 
-  private RGBLuminanceSource BitmapConverRGBLum(Bitmap bitmap) {
-    int w=bitmap.getWidth();
-    int h=bitmap.getHeight();
-    int[] pixels=new int[w*h];
-    bitmap.getPixels(pixels,0,w,0,0,w,h);
-    RGBLuminanceSource source=new RGBLuminanceSource(w,h,pixels);
-    return source;
-  }
+        //modify here
+        byte[] rotatedData = new byte[data.length];
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++)
+                rotatedData[x * height + height - y - 1] = data[x + y * width];
+        }
+        int tmp = width; // Here we are swapping, that's the difference to #11
+        width = height;
+        height = tmp;
+        try {
+            PlanarYUVLuminanceSource sourceYUV = CameraManager.get().buildLuminanceSource(rotatedData, width, height);
+            if (decodeOpenCv) {//使用openCV
+                Bitmap bitmap = sourceYUV.renderCroppedGreyscaleBitmap();
+                if (bitmap != null) {
+                    ImageProcess imageProcess = new ImageProcess(bitmap);
+                    bitmap = imageProcess.doLinearTransform(bitmap);
+                    if (saveFlag) {
+                        UploadUtil.saveBitmap2Card(bitmap, countPic++);
+                    }
+                    RGBLuminanceSource source = BitmapConverRGBLum(bitmap);
+                    BinaryBitmap bitmap1 = new BinaryBitmap(new HybridBinarizer(source));
+                    rawResult = multiFormatReader.decodeWithState(bitmap1);
+                }
+                decodeOpenCv = false;
+            } else {//图片直接扫描查询
+                BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(sourceYUV));
+                rawResult = multiFormatReader.decodeWithState(bitmap);
+                decodeOpenCv = true;
+            }
+        } catch (ReaderException re) {
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            multiFormatReader.reset();
+        }
+        if (rawResult != null) {
+            long end = System.currentTimeMillis();
+            Log.d(TAG, "Found barcode (" + (end - start) + " ms):\n" + rawResult.toString());
+            Message message = Message.obtain(activity.getHandler(), R.id.decode_succeeded,
+                    rawResult);
+            Bundle bundle = new Bundle();
+            //      bundle.putParcelable(DecodeThread.BARCODE_BITMAP, source.renderCroppedGreyscaleBitmap());
+            message.setData(bundle);
+            //Log.d(TAG, "Sending decode succeeded message...");
+            message.sendToTarget();
+        } else {
+            Message message = Message.obtain(activity.getHandler(), R.id.decode_failed);
+            message.sendToTarget();
+        }
+    }
+
+    private RGBLuminanceSource BitmapConverRGBLum(Bitmap bitmap) {
+        int w = bitmap.getWidth();
+        int h = bitmap.getHeight();
+        int[] pixels = new int[w * h];
+        bitmap.getPixels(pixels, 0, w, 0, 0, w, h);
+        RGBLuminanceSource source = new RGBLuminanceSource(w, h, pixels);
+        return source;
+    }
 }
