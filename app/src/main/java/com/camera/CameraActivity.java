@@ -13,7 +13,7 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.TextView;
 
-import com.zxing.activity.MipcaActivityCapture;
+import com.google.zxing.client.android.CaptureActivity;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -132,7 +132,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
 
     private void startQRScan() {
         Intent intent = new Intent();
-        intent.setClass(this, MipcaActivityCapture.class);
+        intent.setClass(this, CaptureActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         this.startActivityForResult(intent, 1);
     }
