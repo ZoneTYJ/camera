@@ -1,4 +1,4 @@
-package com.camera;
+package process;
 
 import android.graphics.Bitmap;
 import android.util.Log;
@@ -7,6 +7,8 @@ import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfFloat;
+import org.opencv.core.MatOfInt;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
@@ -169,8 +171,11 @@ public class ImageProcess {
 
     public Bitmap doLinearTransform(Bitmap bitmap){
         Mat mat=getMat(bitmap);
+        Mat hist=CreateGrayImageHist(mat);
+        int maxHist=calcMaxHist(hist);
+        mat=doBinary(mat,maxHist-15);
 //        Mat mat= doErode(getMat(bitmap));
-        mat=doLinearTransform(mat,0,250);
+//        mat=doLinearTransform(mat,0,250,150);
         return getMat2Bitmap(mat);
     }
 
@@ -238,7 +243,7 @@ public class ImageProcess {
     }
 
 
-    private Mat doLinearTransform(Mat mat,int brightness,int contrast){
+    private Mat doLinearTransform(Mat mat,int brightness,int contrast,int maxHist){
         double B = brightness / 255.;
         double C = contrast / 255. ;
         double M = Math.tan((45 + 44 * C) / 180 * Math.PI);
@@ -247,12 +252,32 @@ public class ImageProcess {
             for(int j=0;j<mat.width();j++){
                 mat.get(i,j,data);
                 for(int m=0;m<3;m++){
-                   int temp= (int) (((data[m]&0xff) - 150 * (1 - B)) * M);
+                   int temp= (int) (((data[m]&0xff) - maxHist * (1 - B)) * M);
                     if(temp>255){
                         temp=255;
                     }
                     if(temp<0){
                         temp=0;
+                    }
+                    data[m]= (byte) temp;
+                }
+                mat.put(i,j,data);
+            }
+        }
+        return mat;
+    }
+
+    private Mat doBinary(Mat mat,int maxHist){
+        byte[] data=new byte[4];
+        for(int i=0;i<mat.height();i++){
+            for(int j=0;j<mat.width();j++){
+                mat.get(i,j,data);
+                for(int m=0;m<3;m++){
+                    int temp= (int) ((data[m]&0xff)-maxHist);
+                    if(temp<0){
+                        temp=0;
+                    }else{
+                        temp=255;
                     }
                     data[m]= (byte) temp;
                 }
@@ -341,5 +366,20 @@ public class ImageProcess {
         return dst;
     }
 
+    private Mat CreateGrayImageHist(Mat frame){
+        List<Mat> images = new ArrayList<Mat>();
+        Core.split(frame, images);
+        MatOfInt histSize = new MatOfInt(256);
+        MatOfFloat histRange = new MatOfFloat(0, 256);
+        MatOfInt channels = new MatOfInt(0);
+        Mat hist = new Mat();
+        Imgproc.calcHist(images.subList(0, 1), channels, new Mat(), hist, histSize,histRange, false);
+        int a=0;
+        return hist;
+    }
 
+    private int calcMaxHist(Mat hist){
+        int maxHist=0;
+        return maxHist;
+    }
 }

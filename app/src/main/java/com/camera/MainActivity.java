@@ -9,10 +9,12 @@ import android.widget.ImageView;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
-import org.opencv.android.OpenCVLoader;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+
+import process.ImageProcess;
+import process.ImageUtils;
 
 public class MainActivity extends Activity {
     private static final String  TAG                 = "OCVcamera::Activity";
@@ -44,7 +46,8 @@ public class MainActivity extends Activity {
     }
 
     private void initView() {
-        Bitmap bmp=ImageUtils.decodeSampledBitmapFromResource(getResources(),R.drawable.image1,getApplicationContext());
+        Bitmap bmp= ImageUtils.decodeSampledBitmapFromResource(getResources(), R.drawable.image1,
+                getApplicationContext());
 //                BitmapFactory.Options options = new BitmapFactory.Options();
 //                options.inPreferredConfig = Bitmap.Config.RGB_565;
 //        options.inJustDecodeBounds=true;
@@ -65,13 +68,13 @@ public class MainActivity extends Activity {
     public void onResume()
     {
         super.onResume();
-        if (!OpenCVLoader.initDebug()) {
-            Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
-            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
-        } else {
-            Log.d(TAG, "OpenCV library found inside package. Using it!");
-            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
-        }
+//        if (!OpenCVLoader.initDebug()) {
+//            Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
+//            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
+//        } else {
+//            Log.d(TAG, "OpenCV library found inside package. Using it!");
+//            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+//        }
     }
 
 

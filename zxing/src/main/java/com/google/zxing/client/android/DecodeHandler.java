@@ -27,12 +27,15 @@ import com.google.zxing.BinaryBitmap;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.MultiFormatReader;
 import com.google.zxing.PlanarYUVLuminanceSource;
+import com.google.zxing.RGBLuminanceSource;
 import com.google.zxing.ReaderException;
 import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Map;
+
+import process.UploadUtil;
 
 final class DecodeHandler extends Handler {
 
@@ -41,6 +44,9 @@ final class DecodeHandler extends Handler {
   private final CaptureActivity activity;
   private final MultiFormatReader multiFormatReader;
   private boolean running = true;
+
+  private boolean decodeOpenCv = true;
+  private int countPic=0;
 
   DecodeHandler(CaptureActivity activity, Map<DecodeHintType,Object> hints) {
     multiFormatReader = new MultiFormatReader();
@@ -74,16 +80,29 @@ final class DecodeHandler extends Handler {
   private void decode(byte[] data, int width, int height) {
     long start = System.currentTimeMillis();
     Result rawResult = null;
-    PlanarYUVLuminanceSource source = activity.getCameraManager().buildLuminanceSource(data, width, height);
-    if (source != null) {
-      BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
-      try {
+   PlanarYUVLuminanceSource sourceYUV = activity.getCameraManager().buildLuminanceSource(data, width, height);
+    try {
+      if (decodeOpenCv) {//使用openCV
+        decodeOpenCv = false;
+        Bitmap  bitmap=DoBinaryBitmap(sourceYUV);
+        if (bitmap != null) {
+//          UploadUtil.saveBitmap2Card(bitmap, countPic++);
+          RGBLuminanceSource source = BitmapConverRGBLum(bitmap);
+          BinaryBitmap bitmap1 = new BinaryBitmap(new HybridBinarizer(source));
+          rawResult = multiFormatReader.decodeWithState(bitmap1);
+        }
+      } else {//图片直接扫描查询
+        decodeOpenCv = true;
+        BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(sourceYUV));
+        //解析不出来时候会报异常
         rawResult = multiFormatReader.decodeWithState(bitmap);
-      } catch (ReaderException re) {
-        // continue
-      } finally {
-        multiFormatReader.reset();
+
       }
+    } catch (ReaderException re) {
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      multiFormatReader.reset();
     }
 
     Handler handler = activity.getHandler();
@@ -94,7 +113,7 @@ final class DecodeHandler extends Handler {
       if (handler != null) {
         Message message = Message.obtain(handler, R.id.decode_succeeded, rawResult);
         Bundle bundle = new Bundle();
-        bundleThumbnail(source, bundle);        
+        bundleThumbnail(sourceYUV, bundle);
         message.setData(bundle);
         message.sendToTarget();
       }
@@ -115,6 +134,71 @@ final class DecodeHandler extends Handler {
     bitmap.compress(Bitmap.CompressFormat.JPEG, 50, out);
     bundle.putByteArray(DecodeThread.BARCODE_BITMAP, out.toByteArray());
     bundle.putFloat(DecodeThread.BARCODE_SCALED_FACTOR, (float) width / source.getWidth());
+  }
+
+  private Bitmap getThumbnail(PlanarYUVLuminanceSource source) {
+    int[] pixels = source.renderThumbnail();
+    int width = source.getThumbnailWidth();
+    int height = source.getThumbnailHeight();
+    Bitmap bitmap = Bitmap.createBitmap(pixels, 0, width, width, height, Bitmap.Config.ARGB_8888);
+    return bitmap;
+  }
+
+
+  private RGBLuminanceSource BitmapConverRGBLum(Bitmap bitmap) {
+    int w = bitmap.getWidth();
+    int h = bitmap.getHeight();
+    int left=w/6;
+    int top=h/10;
+    w=w-left*2;
+    h=h-top*2;
+    int[] pixels = new int[w * h];
+    bitmap.getPixels(pixels, 0, w,left, top, w, h);
+//    creatBitmap(pixels,w,h);
+    RGBLuminanceSource source = new RGBLuminanceSource(w, h, pixels);
+    return source;
+  }
+
+
+  private void creatBitmap(int[] pixels, int width, int height) {
+    Bitmap bitmap=Bitmap.createBitmap(pixels, 0, width, width, height, Bitmap.Config.ARGB_8888);
+    int c=-countPic++;
+    UploadUtil.saveBitmap2Card(bitmap, c);
+  }
+
+
+  private  Bitmap DoBinaryBitmap(PlanarYUVLuminanceSource source){
+    int pixels[]=source.renderThumbnail();
+    int maxhist=getMaxHist(pixels);
+    return getBinary(pixels,maxhist-11,source.getThumbnailWidth(),source.getThumbnailHeight());
+  }
+  private int getMaxHist(int[] pixels){
+    int[] hits=new int[256];
+    int maxCount=-1;
+    int maxHist=-1;
+    for(int i=0;i<pixels.length;i+=4){
+      int grey=pixels[i]&0x000000FF;
+      int count=++hits[grey];
+      if(count>maxCount){
+        maxCount=count;
+        maxHist=grey;
+      }
+    }
+    return maxHist;
+  }
+
+  private Bitmap getBinary(int[] pixels,int maxhist,int width,int height) {
+    for(int i=0;i<pixels.length;i++){
+      int grey=pixels[i]&0x000000FF;
+      int color=-1;
+      if(grey<=maxhist){
+        color=0;
+      }else {
+        color=0xFFFFFF;
+      }
+      pixels[i]=pixels[i]&0xFF000000|color;
+    }
+    return Bitmap.createBitmap(pixels, 0, width, width, height, Bitmap.Config.ARGB_8888);
   }
 
 }

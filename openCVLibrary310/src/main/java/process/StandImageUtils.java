@@ -1,4 +1,4 @@
-package com.camera;
+package process;
 
 import org.opencv.core.Point;
 

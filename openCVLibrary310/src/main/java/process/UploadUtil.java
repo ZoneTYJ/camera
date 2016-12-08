@@ -1,4 +1,4 @@
-package com.camera;
+package process;
 
 import android.graphics.Bitmap;
 import android.os.Environment;

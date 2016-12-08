@@ -1,4 +1,4 @@
-package com.camera;
+package process;
 
 import android.content.Context;
 import android.content.res.Resources;

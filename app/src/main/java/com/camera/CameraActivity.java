@@ -27,6 +27,11 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+import process.ImageProcess;
+import process.ImageUtils;
+import process.StandImageUtils;
+import process.UploadUtil;
+
 
 /**
  * Created by Administrator on 2016/11/19.
