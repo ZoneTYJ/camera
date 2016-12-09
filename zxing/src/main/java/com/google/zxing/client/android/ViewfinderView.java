@@ -91,16 +91,13 @@ public final class ViewfinderView extends View {
     int width = canvas.getWidth();
     int height = canvas.getHeight();
 
-    int top=frame.top;
-    int left=frame.left;
-    int bottom=frame.bottom;
-
+    Rect frameCustom=new Rect(frame.left+450,frame.top+210,frame.right-460,frame.bottom-220);
     // Draw the exterior (i.e. outside the framing rect) darkened
     paint.setColor(resultBitmap != null ? resultColor : maskColor);
-    canvas.drawRect(0, 0, width, frame.top, paint);
-    canvas.drawRect(0, frame.top, frame.left, frame.bottom + 1, paint);
-    canvas.drawRect(frame.right + 1, frame.top, width, frame.bottom + 1, paint);
-    canvas.drawRect(0, frame.bottom + 1, width, height, paint);
+    canvas.drawRect(0, 0, width, frameCustom.top, paint);
+    canvas.drawRect(0, frameCustom.top, frameCustom.left, frameCustom.bottom + 1, paint);
+    canvas.drawRect(frameCustom.right + 1, frameCustom.top, width, frameCustom.bottom + 1, paint);
+    canvas.drawRect(0, frameCustom.bottom + 1, width, height, paint);
 
     if (resultBitmap != null) {
       // Draw the opaque result bitmap over the scanning rectangle
@@ -112,8 +109,8 @@ public final class ViewfinderView extends View {
       paint.setColor(laserColor);
       paint.setAlpha(SCANNER_ALPHA[scannerAlpha]);
       scannerAlpha = (scannerAlpha + 1) % SCANNER_ALPHA.length;
-      int middle = frame.height() / 2 + frame.top;
-      canvas.drawRect(frame.left + 2, middle - 1, frame.right - 1, middle + 2, paint);
+      int middle = frameCustom.height() / 2 + frameCustom.top;
+      canvas.drawRect(frameCustom.left + 2, middle - 1, frameCustom.right - 1, middle + 2, paint);
       
       float scaleX = frame.width() / (float) previewFrame.width();
       float scaleY = frame.height() / (float) previewFrame.height();
