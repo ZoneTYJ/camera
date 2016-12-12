@@ -124,7 +124,7 @@ final class DecodeHandler extends Handler {
         message.sendToTarget();
       }
     } else {
-      if (handler != null) {
+      if (null != handler) {
         Message message = Message.obtain(handler, R.id.decode_failed);
         message.sendToTarget();
       }
@@ -146,8 +146,7 @@ final class DecodeHandler extends Handler {
     int[] pixels = source.renderThumbnail();
     int width = source.getThumbnailWidth();
     int height = source.getThumbnailHeight();
-    Bitmap bitmap = Bitmap.createBitmap(pixels, 0, width, width, height, Bitmap.Config.ARGB_8888);
-    return bitmap;
+    return Bitmap.createBitmap(pixels, 0, width, width, height, Bitmap.Config.ARGB_8888);
   }
 
 
@@ -205,7 +204,7 @@ final class DecodeHandler extends Handler {
   private Bitmap getBinary(int[] pixels,int maxhist,int width,int height) {
     for(int i=0;i<pixels.length;i++){
       int grey=pixels[i]&0x00FF0000>>16;
-      int color=-1;
+      int color;
       if(grey<=maxhist){
         color=0;
       }else {
@@ -223,11 +222,9 @@ final class DecodeHandler extends Handler {
     BitmapRegionDecoder bitmapRegionDecoder = null;
     Bitmap bmp=null;
     try {
-      if (image != null) {
-        image.compressToJpeg(new Rect(0, 0, width, height), 100, stream);
-        stream.close();
-        bitmapRegionDecoder=BitmapRegionDecoder.newInstance(stream.toByteArray(), 0, stream.size(), false);
-      }
+      image.compressToJpeg(new Rect(0, 0, width, height), 100, stream);
+      stream.close();
+      bitmapRegionDecoder=BitmapRegionDecoder.newInstance(stream.toByteArray(), 0, stream.size(), false);
     } catch (Exception ex) {
       Log.e("Sys", "Error:" + ex.getMessage());
     }
