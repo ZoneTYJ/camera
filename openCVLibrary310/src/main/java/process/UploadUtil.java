@@ -2,6 +2,7 @@ package process;
 
 import android.graphics.Bitmap;
 import android.os.Environment;
+import android.os.Message;
 import android.util.Log;
 
 import java.io.DataOutputStream;
@@ -29,7 +30,8 @@ public class UploadUtil {
     private static final String TAG = "uploadFile";
     private static final int TIME_OUT = 10 * 1000; // 超时时间
     private static final String CHARSET = "utf-8"; // 设置编码
-    private static final String url = "http://10.5.18.18:8080/vfinance-ocr/upload";
+    private static final String url = "http://func68.vfinance.cn/saas-invoice/upload";
+//    private static final String url = "http://10.5.18.18:8080/saas-invoice/upload";
 
     /**
      * Android上传文件到服务端
@@ -221,7 +223,7 @@ public class UploadUtil {
         return f;
     }
 
-    public static boolean postBitmaps(Map<String, Bitmap> mps) {
+    public static boolean postBitmaps(Map<String, Bitmap> mps, final UploadHandler handler) {
         final Map filemaps = new HashMap<String, File>();
         for (Map.Entry<String, Bitmap> map : mps.entrySet()) {
             filemaps.put(map.getKey(), saveMyBitmap(map.getKey(), map.getValue()));
@@ -231,7 +233,8 @@ public class UploadUtil {
             @Override
             public void run() {
                 try {
-                    post(url, new HashMap<String, String>(), filemaps);
+                    String str=post(url, new HashMap<String, String>(), filemaps);
+                    Message.obtain(handler, UploadHandler.UPLOAD, str);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -240,7 +243,7 @@ public class UploadUtil {
         return true;
     }
 
-    public static boolean postBitmapAndQRCode(String path, String code, String points) {
+    public static boolean postBitmapAndQRCode(String path, String code, String points,String tax,final UploadHandler handler) {
         final Map filemaps = new HashMap<String, File>();
         filemaps.put("OriginalPhoto", new File(path));
         final Map codemaps = new HashMap<String, String>();
@@ -250,11 +253,15 @@ public class UploadUtil {
         if (points != null) {
             codemaps.put("points", points);
         }
+        if(tax!=null){
+            codemaps.put("tax",tax);
+        }
         new Thread("uploadfile") {
             @Override
             public void run() {
                 try {
-                    post(url, codemaps, filemaps);
+                    String str=post(url, codemaps, filemaps);
+                    Message.obtain(handler, UploadHandler.UPLOAD, str).sendToTarget();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

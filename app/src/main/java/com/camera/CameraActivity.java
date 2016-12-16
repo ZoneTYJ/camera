@@ -1,6 +1,5 @@
 package com.camera;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -27,16 +26,21 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+import process.BaseActivity;
 import process.ImageProcess;
 import process.ImageUtils;
 import process.StandImageUtils;
+import process.UploadHandler;
 import process.UploadUtil;
 
 
 /**
  * Created by Administrator on 2016/11/19.
  */
-public class CameraActivity extends Activity implements View.OnClickListener {
+public class CameraActivity extends BaseActivity implements View.OnClickListener {
+    private final UploadHandler mHandler=new UploadHandler(this);
+
+
     private int mPicCount = 0;
     private TextView tv_cancle;
     private TextView tv_complet;
@@ -64,6 +68,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
     private String codeResult;
     private TextView tv_scan;
     private int inSampleSize;
+    private TextView tv_tax;
 
 
     @Override
@@ -74,6 +79,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
     }
 
     private void initView() {
+        tv_tax = (TextView) findViewById(R.id.tv_tax);
         tv_cancle = (TextView) findViewById(R.id.tv_cancle);
         tv_cancle.setOnClickListener(this);
         tv_complet = (TextView) findViewById(R.id.tv_complet);
@@ -146,7 +152,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         ImageProcess imageProcess = new ImageProcess(drawingCache);
         Map<String, Bitmap> mps = imageProcess.doSplitInvoice(drawingCache, iv_photo
                 .getMaxRectPoints());
-        UploadUtil.postBitmaps(mps);
+//        UploadUtil.postBitmaps(mps);
     }
 
     @Override
@@ -172,7 +178,6 @@ public class CameraActivity extends Activity implements View.OnClickListener {
             iv_photo.setDrawPonintsFlag(1);
             inSampleSize = options.inSampleSize;
         }
-
         //        File file = new File(Environment.getExternalStorageDirectory() + "/myImage/");
         //        file.mkdirs();
         //        String fileName = Environment.getExternalStorageDirectory() + "/myImage/" +
@@ -255,7 +260,8 @@ public class CameraActivity extends Activity implements View.OnClickListener {
             startCamera();
         } else if (v == tv_complet) {
             if (mPicCount >= 1) {
-                UploadUtil.postBitmapAndQRCode(getPhotopath(), codeResult, getPointsSizeString());
+                showProgress();
+                UploadUtil.postBitmapAndQRCode(getPhotopath(), codeResult, getPointsSizeString(),tv_tax.getText().toString().trim(),mHandler);
             } else if (mPicCount == 0) {
                 //                    iv_photo.setDrawingCacheEnabled(true);
                 //                    iv_photo.setDrawPonintsFlag(0);
@@ -271,4 +277,5 @@ public class CameraActivity extends Activity implements View.OnClickListener {
             startQRScan();
         }
     }
+
 }

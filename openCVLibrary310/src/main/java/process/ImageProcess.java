@@ -13,7 +13,6 @@ import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
-import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
@@ -49,22 +48,21 @@ public class ImageProcess {
         return bitmap;
     }
     public Bitmap doCanny(Bitmap bmp){
-        Mat mat=doCanny(getMat(bmp));
+        Mat orgMat=getMat(bmp);
+        Mat mat=doCanny(orgMat);
         return getMat2Bitmap(mat);
     }
 
-    public Bitmap doContours(Bitmap bmp){
+    public Rect doContours(Bitmap bmp){
         //        Mat preMat=colorFilter(getMat());
         Mat orgMat=getMat(bmp);
-        bmp.recycle();
-        bmp=null;
-        Mat mat=doContours(orgMat);
-        return getMat2Bitmap(mat);
+        return doContours(orgMat);
+//        Mat mat=doContours(orgMat);
+//        return getMat2Bitmap(mat);
     }
 
-    public Bitmap doContours(){
-        Mat mat=doContours(getMat());
-        return getMat2Bitmap(mat);
+    public Rect doContours(){
+        return doContours(mBitmap);
     }
 
     private Mat doCanny(Mat frame)
@@ -85,12 +83,12 @@ public class ImageProcess {
 
         // using Canny's output as a mask, display the result
         Mat dest = new Mat();
-        frame.copyTo(dest, detectedEdges);
+        detectedEdges.copyTo(dest);
 
-        return dest;
+        return detectedEdges;
     }
 
-    private Mat doContours(Mat frame)
+    private Rect doContours(Mat frame)
     {
         // init
         Mat grayImage = new Mat();
@@ -108,7 +106,7 @@ public class ImageProcess {
 
         detectedEdges=doDilate(detectedEdges);
         detectedEdges=doDilate(detectedEdges);
-        detectedEdges=doDilate(detectedEdges);
+//        detectedEdges=doDilate(detectedEdges);
 
         List<MatOfPoint> list=new ArrayList<>();
         Mat hierarchy=new Mat();
@@ -127,10 +125,9 @@ public class ImageProcess {
 
             for(MatOfPoint bean:list){
                 MatOfPoint2f mat2f=new MatOfPoint2f(bean.toArray());
-//                Imgproc.approxPolyDP(mat2f,mat2f,Imgproc.arcLength(mat2f,false)*0.02,false);
                 double contourarea = Imgproc.contourArea(mat2f);
                 if(contourarea>100 &&contourarea>maxContourarea){
-                    Imgproc.approxPolyDP(mat2f,mat2f,Imgproc.arcLength(mat2f,true)*0.02,true);
+//                    Imgproc.approxPolyDP(mat2f,mat2f,Imgproc.arcLength(mat2f,true)*0.02,true);
                     maxContourarea=contourarea;
                     MatOfPoint mop=new MatOfPoint(mat2f.toArray());
                     maxcheckPoints=mop;
@@ -163,9 +160,10 @@ public class ImageProcess {
             Log.i("tag", "存储完毕！");
         }
         checkPoints.add(maxcheckPoints);
-        Mat dest = new Mat(frame.rows(), frame.cols(), frame.type());
-        Imgproc.drawContours(dest, checkPoints, -1, new Scalar(255,255,255));
-        return dest;
+//        Mat dest = new Mat(frame.rows(), frame.cols(), frame.type());
+//        Imgproc.drawContours(dest, checkPoints, -1, new Scalar(255,255,255));
+       return  calcuMaxRect(maxcheckPoints);
+//        return dest;
 
     }
 
@@ -373,7 +371,7 @@ public class ImageProcess {
         MatOfFloat histRange = new MatOfFloat(0, 256);
         MatOfInt channels = new MatOfInt(0);
         Mat hist = new Mat();
-        Imgproc.calcHist(images.subList(0, 1), channels, new Mat(), hist, histSize,histRange, false);
+        Imgproc.calcHist(images.subList(0, 1), channels, new Mat(), hist, histSize, histRange, false);
         int a=0;
         return hist;
     }
@@ -381,5 +379,102 @@ public class ImageProcess {
     private int calcMaxHist(Mat hist){
         int maxHist=0;
         return maxHist;
+    }
+
+    private static Rect calcuMaxRect(MatOfPoint maxcheckPoints) {
+        List<Point> allPointList = maxcheckPoints.toList();
+        //所有点集合中最左边、最上边、最右边、最下边
+        double minX = 999999;
+        Map<Double, Double> minXMap = new HashMap<>();
+        double maxX = 0;
+        Map<Double, Double> maxXMap = new HashMap<>();
+        double minY = 999999;
+        Map<Double, Double> minYMap = new HashMap<>();
+        double maxY = 0;
+        Map<Double, Double> maxYMap = new HashMap<>();
+        //累计次数达到阈值，则置为极值，防止少量噪点影响。
+        int threshold = 10;
+        int minXTimes = 0;
+        int maxXTimes = 0;
+        int minYTimes = 0;
+        int maxYTimes = 0;
+        for (Point point : allPointList) {
+            double x = point.x;
+            double y = point.y;
+            //最小x
+            if (x < minX) {
+                minX = x;
+                minXTimes = 0;
+            } else {
+                minXTimes++;
+            }
+            //最大x
+            if (x > maxX) {
+                maxX = x;
+                maxXTimes = 0;
+            } else {
+                maxXTimes++;
+            }
+            //最小y
+            if (y < minY) {
+                minY = y;
+                minYTimes = 0;
+            } else {
+                minYTimes++;
+            }
+            //最大y
+            if (y > maxY) {
+                maxY = y;
+                maxYTimes = 0;
+            } else {
+                maxYTimes++;
+            }
+            if (minXTimes > threshold) { //记录暂时大于阈值的值
+                if (minXMap.get(minX) == null) {
+                    minXMap.put(minX, minX);
+                }
+            }
+            if (maxXTimes > threshold) { //记录暂时大于阈值的值
+                if (maxXMap.get(maxX) == null) {
+                    maxXMap.put(maxX, maxX);
+                }
+            }
+            if (minYTimes > threshold) { //记录暂时大于阈值的值
+                if (minYMap.get(minY) == null) {
+                    minYMap.put(minY, minY);
+                }
+            }
+            if (maxYTimes > threshold) { //记录暂时大于阈值的值
+                if (maxYMap.get(maxY) == null) {
+                    maxYMap.put(maxY, maxY);
+                }
+            }
+        }
+        minX = 999999;
+        for (double x : minXMap.values()) {
+            if (x < minX) {
+                minX = x;
+            }
+        }
+        maxX = 0;
+        for (double x : maxXMap.values()) {
+            if (x > maxX) {
+                maxX = x;
+            }
+        }
+        minY = 999999;
+        for (double y : minYMap.values()) {
+            if (y < minY) {
+                minY = y;
+            }
+        }
+        maxY = 0;
+        for (double y : maxYMap.values()) {
+            if (y > maxY) {
+                maxY = y;
+            }
+        }
+        Rect rect = new Rect((int) minX, (int) minY, (int) (maxX - minX), (int) (maxY - minY));
+        return rect;
     }
 }

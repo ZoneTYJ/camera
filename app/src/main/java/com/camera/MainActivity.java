@@ -9,6 +9,8 @@ import android.widget.ImageView;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
+import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Rect;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -46,8 +48,7 @@ public class MainActivity extends Activity {
     }
 
     private void initView() {
-        Bitmap bmp= ImageUtils.decodeSampledBitmapFromResource(getResources(), R.drawable.image1,
-                getApplicationContext());
+        Bitmap bmp= ImageUtils.decodeSampledBitmapFromResource(getResources(), R.drawable.image_stand, getApplicationContext());
 //                BitmapFactory.Options options = new BitmapFactory.Options();
 //                options.inPreferredConfig = Bitmap.Config.RGB_565;
 //        options.inJustDecodeBounds=true;
@@ -58,8 +59,9 @@ public class MainActivity extends Activity {
         ImageProcess imageProcess=new ImageProcess(bmp);
 
         ImageView iv_show= (ImageView) findViewById(R.id.iv_show);
-        Bitmap bitmap=imageProcess.doContours(bmp);
-        iv_show.setImageBitmap(bitmap);
+        Rect rect=imageProcess.doContours(bmp);
+//        Bitmap bitmap=imageProcess.doContours(bmp);
+//        iv_show.setImageBitmap(bitmap);
 //        UploadUtil.saveMyBitmap("processPic", bitmap);
     }
 
@@ -68,13 +70,13 @@ public class MainActivity extends Activity {
     public void onResume()
     {
         super.onResume();
-//        if (!OpenCVLoader.initDebug()) {
-//            Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
-//            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
-//        } else {
-//            Log.d(TAG, "OpenCV library found inside package. Using it!");
-//            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
-//        }
+        if (!OpenCVLoader.initDebug()) {
+            Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
+            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
+        } else {
+            Log.d(TAG, "OpenCV library found inside package. Using it!");
+            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+        }
     }
 
 

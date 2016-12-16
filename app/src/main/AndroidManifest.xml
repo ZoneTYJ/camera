@@ -12,12 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".MainActivity">
+
         </activity>
         <activity android:name=".DefinedCameraActivity">
-
-        </activity>
-        <activity android:name="com.zxing.activity.MipcaActivityCapture">
-
         </activity>
 
         <activity android:name=".CameraActivity"
